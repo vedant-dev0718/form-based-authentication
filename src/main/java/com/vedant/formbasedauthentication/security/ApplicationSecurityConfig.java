@@ -1,10 +1,9 @@
 package com.vedant.formbasedauthentication.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -23,21 +22,14 @@ public class ApplicationSecurityConfig {
 
     private final PasswordEncoder passwordEncoder;
 
-    private static final String[] AUTH_WHITE_LIST = {
-            "/",
-            "index",
-            "/css/*",
-            "/js/*"
-    };
-
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf()
-                .disable()
+    public SecurityFilterChain securityFilterChain(@NotNull HttpSecurity http) throws Exception {
+        http
+                .csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers(AUTH_WHITE_LIST).permitAll()
-                .requestMatchers("/api/**").hasRole(STUDENT.name())
+                .requestMatchers("/", "index", "/css/*", "/js/*").permitAll()
+                .requestMatchers("/api/**").hasRole(STUDENT.name()) // managing role here based on enum categories.
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -46,6 +38,7 @@ public class ApplicationSecurityConfig {
                 .defaultSuccessUrl("/courses", true)
                 .and()
                 .rememberMe();
+
         return http.build();
     }
 
@@ -61,7 +54,6 @@ public class ApplicationSecurityConfig {
                 .username("linda")
                 .password(passwordEncoder.encode("linda333"))
                 .authorities(ADMIN.name())
-                //.roles(STUDENT.name()) // ROLE_ADMIN
                 .authorities(ADMIN.getGrantedAuthorities())
                 .build();
 
@@ -70,7 +62,6 @@ public class ApplicationSecurityConfig {
                 .password(passwordEncoder.encode("tom555"))
                 .authorities(ADMINTRAINEE.name())
                 .authorities(ADMINTRAINEE.getGrantedAuthorities())
-                //      .roles(ADMINTRAINEE.name()) // ROLE ADMINTRAINEE
                 .build();
 
         UserDetails tolik = User.builder()
@@ -85,7 +76,6 @@ public class ApplicationSecurityConfig {
                 .password(passwordEncoder.encode("hotamboy"))
                 .authorities(ADMIN.name())
                 .authorities(ADMIN.getGrantedAuthorities())
-                //    .roles(ADMIN.name()) // ROLE ADMIN
                 .build();
 
         return new InMemoryUserDetailsManager(
